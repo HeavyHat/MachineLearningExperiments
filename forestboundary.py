@@ -14,10 +14,10 @@ from plotting import BoundaryPlotter
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--count', '-c', dest='count', metavar='C', type=int, nargs='+', default=1000)
-    parser.add_argument('--noise', '-n', dest='noise', metavar='N', type=float, nargs='+', default=0.2)
-    parser.add_argument('--ecount', '-e', dest='ecount', metavar='N', type=int, nargs='+', default=10)
-    parser.add_argument('--dataset', '-d', dest='dataset', metavar='N', type=object, nargs='+')
+    parser.add_argument('--count', '-c', dest='count', metavar='C', type=int, default=1000)
+    parser.add_argument('--noise', '-n', dest='noise', metavar='N', type=float, default=0.2)
+    parser.add_argument('--ecount', '-e', dest='ecount', metavar='N', type=int, default=10)
+    parser.add_argument('--dataset', '-d', dest='dataset', metavar='N', type=object)
     args = parser.parse_args()
     return args
 
