@@ -7,17 +7,16 @@ else:
 import matplotlib.pyplot as plt
 import common
 from plotting import BoundaryPlotter
-global parser
 
-parser.add_argument('-C', dest='C', metavar='N', type=float, default=0.2)
-parser.add_argument('--gamma', '-g', dest='gamma', metavar='N', type=float, default=0.2)
+common.parser.add_argument('-C', dest='C', metavar='N', type=float, default=0.2)
+common.parser.add_argument('--gamma', '-g', dest='gamma', metavar='N', type=float, default=0.2)
 
 
 def get_model_definition(C, gamma):
     return SVC(C=C, gamma=gamma)
 
 if __name__ == '__main__':
-    args = parser.parse_arguments()
+    args = common.parser.parse_args()
     data = common.get_dataset_from_generator(args)
     forestClassifier = get_model_definition(10, 4)
     training_X, testing_X, training_y, testing_y = train_test_split(data[0], data[1], test_size=0.5)
