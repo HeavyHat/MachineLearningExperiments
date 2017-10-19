@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from sklearn.base import clone
-from scipy.interpolate import interp2d
+import sklearn
+if sklearn.__version__ < '0.18':
+    from sklearn.cross_validation import train_test_split
+else:
+    from sklearn.model_selection import train_test_split
 import numpy as np
 
 
@@ -20,7 +22,8 @@ class BoundaryPlotter:
         figure, axarr = plt.subplots()
         z = self.model.predict(np.c_[xx.ravel(), yy.ravel()])
         z = z.reshape(xx.shape)
-        axarr.contourf(xx, yy, z, alpha=0.3)
+        axarr.contourf(xx, yy, z, alpha=0.3, antialiased=True)
+
         return figure, axarr
 
     def __get_min_max(self, data):
@@ -37,27 +40,25 @@ class BoundaryPlotter:
         return x_resolution, y_resolution
 
 
-class Landscape3DPlotter:
+def default_cross_val_score(m_func, param, x, y):
+    model = m_func(param)
+    training_X, testing_X, training_y, testing_y = train_test_split(x, y, test_size=0.5)
+    model.fit(training_X, training_y)
+    return model.score(testing_X, testing_y)
 
-    def __init__(self, resolution, x_function, y_function, z_function):
-        self.resolution = resolution
-        self.x_function = x_function
-        self.y_function = y_function
-        self.z_function = z_function
+class LandscapePlotter:
+
+    def __init__(self, x_iterator, y_generator=default_cross_val_score):
+        self.x_iterator = x_iterator
+        self.y_generator= y_generator
 
 
-    def plot(self, model_function):
-        X = self.x_function(range(self.resolution))
-        Y = self.y_function(range(self.resolution))
-        Z = list()
-        for x in X:
-            for y in Y:
-                model, = model_function(x, y)
-                z = self.z_function(model, x, y)
-                Z.append(z)
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.plot_surface(X, Y, Z)
+    def plot(self, model_function, data_X, data_y):
+        X = self.x_iterator
+        Y = [self.y_generator(model_function, item, data_X, data_y) for item in self.x_iterator]
+        print X
+        print Y
+        fig, ax = plt.subplots()
+        ax.plot(X, Y)
         return ax
-
 

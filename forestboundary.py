@@ -3,10 +3,11 @@ import sklearn
 if sklearn.__version__ < '0.18':
     from sklearn.cross_validation import train_test_split
 else:
-    from sklearn.model_selection import train_test_;split
+    from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import common
-from plotting import BoundaryPlotter
+from plotting import LandscapePlotter
+import numpy as np
 
 common.parser.add_argument('--ecount', '-e', dest='ecount', metavar='N', type=int, default=10)
 
@@ -22,8 +23,8 @@ if __name__ == '__main__':
     forestClassifier = get_model_definition(args.ecount)
     training_X, testing_X, training_y, testing_y = train_test_split(data[0], data[1], test_size=0.5)
     forestClassifier.fit(training_X, training_y)
-    plotter = BoundaryPlotter(forestClassifier, resolution=2000)
+    print np.arange(1, 100,2)
+    plotter = LandscapePlotter(np.arange(1, 100, 2))
     colours = [(1 - target, 0, target) for target in testing_y]
-    figure, plot = plotter.plot(training_X, testing_X)
-    plot.scatter(testing_X[:, 0], testing_X[:, 1], c=colours)
+    plot = plotter.plot(get_model_definition, data[0], data[1])
     plt.show()
