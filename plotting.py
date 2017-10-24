@@ -1,10 +1,13 @@
 import matplotlib.pyplot as plt
 import sklearn
 if sklearn.__version__ < '0.18':
-    from sklearn.cross_validation import train_test_split
+    from sklearn.cross_validation import StratifiedKFold
+    from sklearn.cross_validation import cross_val_score
 else:
-    from sklearn.model_selection import train_test_split
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import cross_val_score
 import numpy as np
+import cProfile, pstats, StringIO
 
 
 class BoundaryPlotter:
@@ -41,10 +44,8 @@ class BoundaryPlotter:
 
 
 def default_cross_val_score(m_func, param, x, y):
-    model = m_func(param)
-    training_X, testing_X, training_y, testing_y = train_test_split(x, y, test_size=0.5)
-    model.fit(training_X, training_y)
-    return model.score(testing_X, testing_y)
+    cross_validator = StratifiedKFold(n_splits=5, random_state=1)
+    return 1 - cross_val_score(m_func(param), x, y, cv=cross_validator).mean()
 
 class LandscapePlotter:
 
@@ -53,12 +54,25 @@ class LandscapePlotter:
         self.y_generator= y_generator
 
 
-    def plot(self, model_function, data_X, data_y):
+    def plot(self, model_function, data_X, data_y, axis=None, profile=False):
+        if profile:
+            pr = cProfile.Profile()
+            pr.enable()
         X = self.x_iterator
         Y = [self.y_generator(model_function, item, data_X, data_y) for item in self.x_iterator]
         print X
         print Y
-        fig, ax = plt.subplots()
+        if axis is None:
+            fig, ax = plt.subplots()
+        else:
+            ax = axis
         ax.plot(X, Y)
+        if profile:
+            pr.disable()
+            s = StringIO.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+            ps.print_stats()
+            print s.getvalue()
         return ax
 
