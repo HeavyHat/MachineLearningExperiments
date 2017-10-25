@@ -7,6 +7,7 @@ else:
 import matplotlib.pyplot as plt
 import common
 from plotting import LandscapePlotter
+from plotting import BoundaryPlotter
 import numpy as np
 
 common.parser.add_argument('--ecount', '-e', dest='ecount', metavar='N', type=int, default=10)
@@ -24,7 +25,10 @@ if __name__ == '__main__':
     training_X, testing_X, training_y, testing_y = train_test_split(data[0], data[1], test_size=0.5)
     forestClassifier.fit(training_X, training_y)
     print np.arange(1, 100,2)
-    plotter = LandscapePlotter(np.arange(1, 10, 1))
+    plotter = BoundaryPlotter(forestClassifier)
     colours = [(1 - target, 0, target) for target in testing_y]
-    plot = plotter.plot(get_model_definition, data[0], data[1])
+    figure, plot = plotter.plot(training_X, testing_X)
+    x = [item[0] for item in testing_X]
+    y = [item[1] for item in testing_X]
+    plt.scatter(x, y, c=colours)
     plt.show()
