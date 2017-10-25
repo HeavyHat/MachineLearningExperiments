@@ -4,7 +4,7 @@ from sklearn.datasets import make_hastie_10_2
 from sklearn.datasets import make_multilabel_classification
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_digits
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
@@ -18,27 +18,33 @@ if sklearn.__version__ < '0.18':
 else:
     from sklearn.model_selection import train_test_split
 
-def get_data_set(include_categorical=False, one_hot_encoding=False, n=1000):
+max_depth = 5
+max_features = None
+min_samples_leaf = 1
+min_samples_split = 2
+random_state = 1
 
-    hastie = get_continuous_data_set(n)
-    if include_categorical:
-        categorical = get_categorical_data_set(n)
-        if one_hot_encoding:
-            oh_encoder = OneHotEncoder()
-            oh_encoder.fit(categorical[0])
-            cat_data = oh_encoder.transform(categorical[0]).toarray()
-        else:
-            cat_data = categorical[0]
-        hastie_reshape = np.reshape(hastie[1], categorical[1].shape)
-        answers = np.concatenate((categorical[1], hastie_reshape), axis=1)
-        answers = [str(item[0]) + str(item[1]) for item in answers]
-        encoder = LabelEncoder()
-        encoder.fit(answers)
-        answers = encoder.transform(answers)
-        data = (np.concatenate((cat_data, hastie[0]), axis=1),
-                answers)
-        return data
-    return hastie
+def get_data_set(include_categorical=False, one_hot_encoding=False, n=1000):
+    return load_digits(n_class=2, return_X_y=True)
+#    hastie = get_continuous_data_set(n)
+#    if include_categorical:
+#        categorical = get_categorical_data_set(n)
+#        if one_hot_encoding:
+#            oh_encoder = OneHotEncoder()
+#            oh_encoder.fit(categorical[0])
+#            cat_data = oh_encoder.transform(categorical[0]).toarray()
+#        else:
+#            cat_data = categorical[0]
+#        hastie_reshape = np.reshape(hastie[1], categorical[1].shape)
+#        answers = np.concatenate((categorical[1], hastie_reshape), axis=1)
+#        answers = [str(item[0]) + str(item[1]) for item in answers]
+#        encoder = LabelEncoder()
+#        encoder.fit(answers)
+#        answers = encoder.transform(answers)
+#        data = (np.concatenate((cat_data, hastie[0]), axis=1),
+#                answers)
+#        return data
+#    return hastie
 
 def get_categorical_data_set(n):
     categorical = make_multilabel_classification(n_classes=1, n_samples=n, n_features=3, n_labels=3, random_state=1,
@@ -50,19 +56,44 @@ def get_continuous_data_set(n):
     return hastie
 
 def get_decision_tree(x):
-    return DecisionTreeClassifier(random_state=1)
+    return DecisionTreeClassifier(max_depth=max_depth,
+                                  max_features=max_features,
+                                  min_samples_leaf=min_samples_leaf,
+                                  min_samples_split=min_samples_split,
+                                  random_state=random_state)
 
 def get_random_forest(x):
-    return RandomForestClassifier(n_estimators=x, random_state=1, n_jobs=-1)
+    return RandomForestClassifier(max_depth=max_depth,
+                                  n_estimators=x,
+                                  random_state=random_state,
+                                  max_features=max_features,
+                                  min_samples_leaf=min_samples_leaf,
+                                  min_samples_split=min_samples_split,
+                                  n_jobs=-1)
 
 def get_adaboost_classifier(x):
-    return AdaBoostClassifier(DecisionTreeClassifier(max_depth=2), n_estimators=x, random_state=1, algorithm='SAMME.R')
+    return AdaBoostClassifier(base_estimator=get_decision_tree(x),
+                              n_estimators=x,
+                              random_state=random_state,
+                              learning_rate=0.5,
+                              algorithm='SAMME.R')
 
 def get_extratrees_classifier(x):
-    return ExtraTreesClassifier(n_estimators=x, random_state=1, n_jobs=-1)
+    return ExtraTreesClassifier(max_depth=max_depth,
+                                n_estimators=x,
+                                random_state=random_state,
+                                max_features=max_features,
+                                min_samples_leaf=min_samples_leaf,
+                                min_samples_split=min_samples_split,
+                                n_jobs=-1)
 
 def get_gradientboosted_classifier(x):
-    return GradientBoostingClassifier(n_estimators=x, random_state=1)
+    return GradientBoostingClassifier(max_depth=max_depth,
+                                      n_estimators=x,
+                                      max_features=max_features,
+                                      min_samples_leaf=min_samples_leaf,
+                                      min_samples_split=min_samples_split,
+                                      random_state=random_state)
 
 if __name__ == '__main__':
 
@@ -78,7 +109,7 @@ if __name__ == '__main__':
         'ExtraTrees Classifier' : get_extratrees_classifier,
         'Gradient Boosted Classifier' : get_gradientboosted_classifier
     }
-    dataset = get_data_set(include_categorical=True)
+    dataset = get_data_set(include_categorical=True, one_hot_encoding=True)
     x = np.append([start], np.arange(step+start if step == start else step,end+1,step))
     print x
     plotter = LandscapePlotter(x)
@@ -102,12 +133,10 @@ if __name__ == '__main__':
         classifier = models[model](end)
         classifier.fit(training_X, training_y)
         predictions = classifier.predict(training_X)
-        print predictions
-        training_error = accuracy_score(training_y, predictions)
+        training_error = 1-accuracy_score(training_y, predictions)
         classifier.fit(training_X, training_y)
-        predictions_valid = classifier.predict(testing_y)
-        print predictions_valid
-        validation_error = accuracy_score(testing_y, predictions_valid)
+        predictions_valid = classifier.predict(testing_X)
+        validation_error = 1-accuracy_score(testing_y, predictions_valid)
         print 'Model: %s' % model
         print 'Training Error: %0.5f' % training_error
         print 'Validation Error: %0.5f' % validation_error

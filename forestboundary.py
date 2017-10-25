@@ -1,4 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.metrics import accuracy_score
 import sklearn
 if sklearn.__version__ < '0.18':
     from sklearn.cross_validation import train_test_split
@@ -15,7 +17,7 @@ common.parser.add_argument('--ecount', '-e', dest='ecount', metavar='N', type=in
 
 def get_model_definition(n_count, criterion='gini', type=None):
     if type is None:
-        return RandomForestClassifier(n_estimators=n_count, criterion=criterion)
+        return ExtraTreesClassifier(n_estimators=n_count, criterion=criterion)
     return None
 
 if __name__ == '__main__':
@@ -30,5 +32,7 @@ if __name__ == '__main__':
     figure, plot = plotter.plot(training_X, testing_X)
     x = [item[0] for item in testing_X]
     y = [item[1] for item in testing_X]
+    predictions = forestClassifier.predict(testing_X)
     plt.scatter(x, y, c=colours)
+    plt.text(max(x)+(0.1*max(x)), max(y)+(0.1*max(y)), r'Accuracy = %0.5f' % accuracy_score(testing_y, predictions))
     plt.show()
