@@ -45,7 +45,7 @@ class BoundaryPlotter:
 
 def default_cross_val_score(m_func, param, x, y):
     cross_validator = StratifiedKFold(n_splits=5, random_state=1)
-    return 1 - cross_val_score(m_func(param), x, y, cv=cross_validator).mean()
+    return (1 - cross_val_score(m_func(param), x, y, cv=cross_validator).mean())
 
 class LandscapePlotter:
 
@@ -58,8 +58,9 @@ class LandscapePlotter:
         if profile:
             pr = cProfile.Profile()
             pr.enable()
-        X = self.x_iterator
-        Y = [self.y_generator(model_function, item, data_X, data_y) for item in self.x_iterator]
+        X = [item for item in self.x_iterator]
+        results = list([self.y_generator(model_function, item, data_X, data_y) for item in self.x_iterator])
+        Y = [item for item in results]
         print X
         print Y
         if axis is None:
